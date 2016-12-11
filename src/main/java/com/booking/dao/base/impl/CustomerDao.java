@@ -39,21 +39,6 @@ public class CustomerDao implements ICustomerDao<CustomerDto, Long> {
 	 */
 	@Transactional(readOnly = false)
 	public Long addCustomer(CustomerDto newInstance) {
-
-		/*
-		 * Long persistentId = null; Customer customer = new Customer();
-		 * 
-		 * BookingTableDto transientTable = new BookingTableDto();
-		 * transientTable.setCapacity(newInstance.getNoOfSeats());
-		 * transientTable.setCustomerDto(newInstance); transientTable =
-		 * bookingTableDao.bookTable(transientTable);
-		 * 
-		 * if (null != transientTable) { ArrayList<BookingTable> bookedTables =
-		 * new ArrayList<BookingTable>(); bookedTables.add(bookingTableDao
-		 * .getBookingTableEntityFromDto(transientTable));
-		 * customer.setBookedTables(bookedTables); persistentId = (Long)
-		 * create(customer); } return persistentId;
-		 */
 		Customer customer = getCustomerEntityFromDto(newInstance);
 		Session session = sessionFactory.openSession();
 		return (Long) session.save(customer);
@@ -100,11 +85,6 @@ public class CustomerDao implements ICustomerDao<CustomerDto, Long> {
 		return createCustomerDtoList(criteria.list());
 
 	}
-
-	/*
-	 * public boolean checkAvailablity(int capacity) { return
-	 * bookingTableDao.isTableAvailable(capacity); }
-	 */
 
 	/*
 	 * utility classes to perform object transformations private scope to all

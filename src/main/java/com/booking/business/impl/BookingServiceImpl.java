@@ -26,8 +26,8 @@ public class BookingServiceImpl implements IBookingService<Customer, Long> {
 
 	@Autowired
 	public boolean checkAvailibility(int numberOfSeats) {
-
-		return customerDAO.checkAvailablity(numberOfSeats);
+		return true;
+		// return customerDAO.checkAvailablity(numberOfSeats);
 	}
 
 	public Long bookInAdvance(int numberOfSeats) {
@@ -65,7 +65,7 @@ public class BookingServiceImpl implements IBookingService<Customer, Long> {
 	}
 
 	public Customer getCustomer(long customerId) {
-		
+
 		return getCustomerFromDto(customerDAO.getCustomer(customerId));
 	}
 
@@ -106,18 +106,19 @@ public class BookingServiceImpl implements IBookingService<Customer, Long> {
 
 		return bookingTable;
 	}
-	
+
 	private Customer getCustomerFromDto(CustomerDto customerDto) {
 		Customer customer = new Customer();
 		customer.setId(customerDto.getId());
 		customer.setName(customerDto.getName());
 		customer.setContactNumber(customerDto.getContactNumber());
 		customer.setNoOfSeats(customerDto.getNoOfSeats());
-		customer.setBookedTables(getBookingTableList(customerDto.getBookedTables()));
+		customer.setBookedTables(getBookingTableList(customerDto
+				.getBookedTables()));
 
 		return customer;
 	}
-	
+
 	private BookingTable getBookingTableFromDto(BookingTableDto bookingTableDto) {
 		BookingTable bookingTable = new BookingTable();
 

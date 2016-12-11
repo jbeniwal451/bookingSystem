@@ -36,26 +36,6 @@ public class BookingTableDao implements IBookingTableDao<BookingTableDto, Long> 
 	@Transactional(readOnly = false)
 	public Long bookTable(final BookingTableDto newInstance) {
 
-		/*
-		 * BookingTableDto bookedTable = null; List<BookingTable>
-		 * retrievedTables = null; int requiredCapacity =
-		 * newInstance.getCapacity();
-		 * 
-		 * DetachedCriteria criteria = DetachedCriteria
-		 * .forClass(BookingTable.class);
-		 * criteria.add(Restrictions.eq("capacity", requiredCapacity));
-		 * retrievedTables = readAllByCriteria(criteria); if (null ==
-		 * retrievedTables) { criteria =
-		 * DetachedCriteria.forClass(BookingTable.class);
-		 * criteria.add(Restrictions.gt("capacity", requiredCapacity));
-		 * retrievedTables = readAllByCriteria(criteria); } if (null !=
-		 * retrievedTables) { // code to modify table's state and then create
-		 * DTO
-		 * 
-		 * bookedTable = createBookingTableDto(retrievedTables.get(0)); } return
-		 * bookedTable;
-		 */
-
 		BookingTable bookingTable = getBookingTableEntityFromDto(newInstance);
 		Session session = sessionFactory.openSession();
 		return (Long) session.save(bookingTable);
@@ -86,12 +66,6 @@ public class BookingTableDao implements IBookingTableDao<BookingTableDto, Long> 
 
 	@Transactional(readOnly = false)
 	public void unbookTable(Long id) {
-		/*
-		 * BookingTable persistedTable = null; persistedTable = read(id); if
-		 * (null == persistedTable) { // throw some exception return false; }
-		 * delete(persistedTable); return true;
-		 */
-
 		Session session = sessionFactory.openSession();
 		session.delete("BookingTable.class", id);
 
