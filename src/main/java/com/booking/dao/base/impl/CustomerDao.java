@@ -6,88 +6,105 @@ package com.booking.dao.base.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.booking.dao.base.DaoHibernateBase;
 import com.booking.dao.base.ICustomerDao;
-import com.booking.dao.dto.BookingTableDto;
 import com.booking.dao.dto.CustomerDto;
-import com.booking.dao.entity.BookingTable;
 import com.booking.dao.entity.Customer;
 
 /**
  * @author jitesh.kumar
  *
  */
-public class CustomerDao extends DaoHibernateBase<Customer, Long> implements
-		ICustomerDao<CustomerDto, Long> {
+
+@Repository
+@Transactional(readOnly = true)
+public class CustomerDao implements ICustomerDao<CustomerDto, Long> {
 
 	@Autowired
 	private BookingTableDao bookingTableDao;
 
+	@Autowired
+	private SessionFactory sessionFactory;
+
 	/*
 	 * @Autowired private ArchiveCustomerDao archiveCustomerDao;
 	 */
-
+	@Transactional(readOnly = false)
 	public Long addCustomer(CustomerDto newInstance) {
 
-		Long persistentId = null;
-		Customer customer = new Customer();
-
-		BookingTableDto transientTable = new BookingTableDto();
-		transientTable.setCapacity(newInstance.getNoOfSeats());
-		transientTable.setCustomerDto(newInstance);
-		transientTable = bookingTableDao.bookTable(transientTable);
-
-		if (null != transientTable) {
-			ArrayList<BookingTable> bookedTables = new ArrayList<BookingTable>();
-			bookedTables.add(bookingTableDao
-					.getBookingTableEntityFromDto(transientTable));
-			customer.setBookedTables(bookedTables);
-			persistentId = (Long) create(customer);
-		}
-		return persistentId;
+		/*
+		 * Long persistentId = null; Customer customer = new Customer();
+		 * 
+		 * BookingTableDto transientTable = new BookingTableDto();
+		 * transientTable.setCapacity(newInstance.getNoOfSeats());
+		 * transientTable.setCustomerDto(newInstance); transientTable =
+		 * bookingTableDao.bookTable(transientTable);
+		 * 
+		 * if (null != transientTable) { ArrayList<BookingTable> bookedTables =
+		 * new ArrayList<BookingTable>(); bookedTables.add(bookingTableDao
+		 * .getBookingTableEntityFromDto(transientTable));
+		 * customer.setBookedTables(bookedTables); persistentId = (Long)
+		 * create(customer); } return persistentId;
+		 */
+		Customer customer = getCustomerEntityFromDto(newInstance);
+		Session session = sessionFactory.openSession();
+		return (Long) session.save(customer);
 	}
 
 	public CustomerDto getCustomer(Long id) {
-		return createCustomerDto(read(id));
+		Session session = sessionFactory.openSession();
+		Criteria criteria = session.createCriteria(Customer.class);
+		criteria.add(Restrictions.eq("ID", id));
+		return createCustomerDto((Customer) criteria.uniqueResult());
 	}
 
+	@Transactional(readOnly = false)
 	public Long updateCustomer(CustomerDto customer) {
 		CustomerDto persistedCustomer = null;
-		long persistentId;
+		Long persistentId;
 
-		if ((persistedCustomer = getCustomer((Long) customer.getId())) != null) {
-			persistentId = (long) persistedCustomer.getId();
-			if (!persistedCustomer.getBookedTables().equals(
-					customer.getBookedTables())) {
-				throw new UnsupportedOperationException();
-			} else {
-				saveOrUpdate(getCustomerEntityFromDto(customer));
-			}
+		Session session = sessionFactory.openSession();
+
+		persistedCustomer = getCustomer((Long) customer.getId());
+		persistentId = (Long) persistedCustomer.getId();
+
+		if (persistentId == null) {
+			persistentId = addCustomer(customer);
 		} else {
-			persistentId = (Long) addCustomer(customer);
+			session.update(getCustomerEntityFromDto(customer));
 		}
+
 		return persistentId;
+
 	}
 
+	@Transactional(readOnly = false)
 	public void removeCustomer(CustomerDto persistentObject) {
-		delete(getCustomerEntityFromDto(persistentObject));
-
+		Session session = sessionFactory.openSession();
+		session.delete(getCustomerEntityFromDto(persistentObject));
 	}
 
 	public List<CustomerDto> getCurrentCustomers(
 			DetachedCriteria detachedCriteria) {
-		List<Customer> customers = null;
-		DetachedCriteria criteria = DetachedCriteria.forClass(Customer.class);
-		customers = readAllByCriteria(criteria);
-		return createCustomerDtoList(customers);
+
+		Session session = sessionFactory.openSession();
+		Criteria criteria = session.createCriteria(Customer.class);
+		return createCustomerDtoList(criteria.list());
+
 	}
 
-	public boolean checkAvailablity(int capacity) {
-		return bookingTableDao.isTableAvailable(capacity);
-	}
+	/*
+	 * public boolean checkAvailablity(int capacity) { return
+	 * bookingTableDao.isTableAvailable(capacity); }
+	 */
 
 	/*
 	 * utility classes to perform object transformations private scope to all

@@ -5,7 +5,6 @@ package com.booking.dao.base;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author jitesh.kumar
@@ -13,7 +12,7 @@ import java.util.Map;
  */
 public interface IBookingTableDao<T, ID extends Serializable> {
 
-	public T bookTable(T newInstance);
+	public ID bookTable(T newInstance);
 
 	public T getTableById(ID id);
 
@@ -21,6 +20,6 @@ public interface IBookingTableDao<T, ID extends Serializable> {
 
 	public List<T> getAvailableTables();
 
-	public boolean unbookTable(ID id);
+	public void unbookTable(ID id);
 
 }

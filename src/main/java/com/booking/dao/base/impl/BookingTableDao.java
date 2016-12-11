@@ -6,11 +6,14 @@ package com.booking.dao.base.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.booking.dao.base.DaoHibernateBase;
 import com.booking.dao.base.IBookingTableDao;
 import com.booking.dao.dto.BookingTableDto;
 import com.booking.dao.entity.BookingTable;
@@ -19,68 +22,78 @@ import com.booking.dao.entity.BookingTable;
  * @author jitesh.kumar
  *
  */
-public class BookingTableDao extends DaoHibernateBase<BookingTable, Long>
-		implements IBookingTableDao<BookingTableDto, Long> {
+
+@Repository
+@Transactional(readOnly = true)
+public class BookingTableDao implements IBookingTableDao<BookingTableDto, Long> {
 
 	@Autowired
 	private BookingTableDao bookingTableDao;
 
-	public BookingTableDto bookTable(final BookingTableDto newInstance) {
+	@Autowired
+	private SessionFactory sessionFactory;
 
-		BookingTableDto bookedTable = null;
-		List<BookingTable> retrievedTables = null;
-		int requiredCapacity = newInstance.getCapacity();
+	@Transactional(readOnly = false)
+	public Long bookTable(final BookingTableDto newInstance) {
 
-		DetachedCriteria criteria = DetachedCriteria
-				.forClass(BookingTable.class);
-		criteria.add(Restrictions.eq("capacity", requiredCapacity));
-		retrievedTables = readAllByCriteria(criteria);
-		if (null == retrievedTables) {
-			criteria = DetachedCriteria.forClass(BookingTable.class);
-			criteria.add(Restrictions.gt("capacity", requiredCapacity));
-			retrievedTables = readAllByCriteria(criteria);
-		}
-		if (null != retrievedTables) {
-			// code to modify table's state and then create DTO
+		/*
+		 * BookingTableDto bookedTable = null; List<BookingTable>
+		 * retrievedTables = null; int requiredCapacity =
+		 * newInstance.getCapacity();
+		 * 
+		 * DetachedCriteria criteria = DetachedCriteria
+		 * .forClass(BookingTable.class);
+		 * criteria.add(Restrictions.eq("capacity", requiredCapacity));
+		 * retrievedTables = readAllByCriteria(criteria); if (null ==
+		 * retrievedTables) { criteria =
+		 * DetachedCriteria.forClass(BookingTable.class);
+		 * criteria.add(Restrictions.gt("capacity", requiredCapacity));
+		 * retrievedTables = readAllByCriteria(criteria); } if (null !=
+		 * retrievedTables) { // code to modify table's state and then create
+		 * DTO
+		 * 
+		 * bookedTable = createBookingTableDto(retrievedTables.get(0)); } return
+		 * bookedTable;
+		 */
 
-			bookedTable = createBookingTableDto(retrievedTables.get(0));
-		}
-		return bookedTable;
+		BookingTable bookingTable = getBookingTableEntityFromDto(newInstance);
+		Session session = sessionFactory.openSession();
+		return (Long) session.save(bookingTable);
 	}
 
 	public BookingTableDto getTableById(Long id) {
-		return createBookingTableDto(read(id));
+		Session session = sessionFactory.openSession();
+		Criteria criteria = session.createCriteria(BookingTable.class);
+		criteria.add(Restrictions.eq("ID", id));
+		return createBookingTableDto((BookingTable) criteria.uniqueResult());
 	}
 
 	public List<BookingTableDto> getAllBookedTables() {
 
-		List<BookingTable> retrievedTables = null;
-		DetachedCriteria criteria = DetachedCriteria
-				.forClass(BookingTable.class);
+		Session session = sessionFactory.openSession();
+		Criteria criteria = session.createCriteria(BookingTable.class);
 		criteria.add(Restrictions.eq("available", false));
-		retrievedTables = readAllByCriteria(criteria);
-		return createBookingTableDtoList(retrievedTables);
+		return createBookingTableDtoList(criteria.list());
 	}
 
 	public List<BookingTableDto> getAvailableTables() {
 
-		List<BookingTable> retrievedTables = null;
-		DetachedCriteria criteria = DetachedCriteria
-				.forClass(BookingTable.class);
+		Session session = sessionFactory.openSession();
+		Criteria criteria = session.createCriteria(BookingTable.class);
 		criteria.add(Restrictions.eq("available", true));
-		retrievedTables = readAllByCriteria(criteria);
-		return createBookingTableDtoList(retrievedTables);
+		return createBookingTableDtoList(criteria.list());
 	}
 
-	public boolean unbookTable(Long id) {
-		BookingTable persistedTable = null;
-		persistedTable = read(id);
-		if (null == persistedTable) {
-			// throw some exception
-			return false;
-		}
-		delete(persistedTable);
-		return true;
+	@Transactional(readOnly = false)
+	public void unbookTable(Long id) {
+		/*
+		 * BookingTable persistedTable = null; persistedTable = read(id); if
+		 * (null == persistedTable) { // throw some exception return false; }
+		 * delete(persistedTable); return true;
+		 */
+
+		Session session = sessionFactory.openSession();
+		session.delete("BookingTable.class", id);
 
 	}
 

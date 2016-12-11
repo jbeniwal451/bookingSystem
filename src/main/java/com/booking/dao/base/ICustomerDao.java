@@ -27,5 +27,4 @@ public interface ICustomerDao<T, ID extends Serializable> {
 
 	public List<T> getCurrentCustomers(DetachedCriteria detachedCriteria);
 
-	public boolean checkAvailablity(int capacity);
 }
